@@ -5,24 +5,26 @@ import ServerMessage from './serve.component';
 
 
 class Chat extends React.Component {
-  constructor() {
+  constructor(props) {
     super();
     this.state = {
       inputMessage: "",
       messages: []
     }
 
-    let socket = new Socket("wss://10428ea44b88.ngrok.io/socket");
+    let socket = new Socket(props.url);
     socket.connect();
-
-    this.channel = socket.channel("counter_cooler:lobby", {});
+    
+    this.channel = socket.channel(`counter_cooler:${props.subtopic}`, {});
   }
 
   componentWillMount() {
     this.channel.join()
       .receive("ok", response => { console.log("Joined successfully", response) })
 
-    this.channel.on("ping", payload => {
+    
+
+    this.channel.on("shout", payload => {
       this.setState({
         messages: this.state.messages.concat(payload.body)
       })
@@ -37,7 +39,10 @@ class Chat extends React.Component {
 
   handleSubmit(event) {
     event.preventDefault();
-    this.channel.push("ping", {body: this.state.inputMessage})
+    this.channel.push("shout", {body: this.state.inputMessage})/*.receive("ok",(response) => {
+      console.log(response);
+    });*/
+
     this.setState({
       messages: this.state.messages.concat(this.state.inputMessage),
       inputMessage: ""
